@@ -1,0 +1,27 @@
+{
+  "name": "image-search-multi-select",
+  "version": "1.0.0",
+  "description": "MERN Stack Image Search & Multi-Select Application with OAuth",
+  "main": "index.js",
+  "scripts": {
+    "install-all": "npm install --prefix server && npm install --prefix client",
+    "server": "npm run dev --prefix server",
+    "client": "npm start --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "build": "npm run build --prefix client"
+  },
+  "keywords": [
+    "mern",
+    "oauth",
+    "image-search",
+    "react",
+    "node",
+    "express",
+    "mongodb"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.1"
+  }
+}

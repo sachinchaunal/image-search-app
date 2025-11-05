@@ -1,0 +1,453 @@
+{
+  "info": {
+    "_postman_id": "image-search-api-collection",
+    "name": "Image Search & Multi-Select API",
+    "description": "Complete API collection for MERN Stack Image Search & Multi-Select application.\n\nAuthentication: OAuth-based (Google, Facebook, GitHub)\nBase URL: http://localhost:5000\n\nNote: Login via browser first to establish session, then use these endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "description": "OAuth authentication and user management endpoints",
+      "item": [
+        {
+          "name": "Get Current User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has authenticated field\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('authenticated');",
+                  "});",
+                  "",
+                  "if (pm.response.json().authenticated) {",
+                  "    pm.test(\"User object exists\", function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property('user');",
+                  "        pm.expect(jsonData.user).to.have.property('id');",
+                  "        pm.expect(jsonData.user).to.have.property('displayName');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/user",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "user"]
+            },
+            "description": "Returns the currently authenticated user's information.\n\nResponse:\n- authenticated: true if user is logged in\n- user: User object with id, displayName, email, profilePhoto, provider"
+          },
+          "response": [
+            {
+              "name": "Authenticated User",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/auth/user",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "user"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"authenticated\": true,\n  \"user\": {\n    \"id\": \"507f1f77bcf86cd799439011\",\n    \"displayName\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"profilePhoto\": \"https://lh3.googleusercontent.com/a/...\",\n    \"provider\": \"google\"\n  }\n}"
+            },
+            {
+              "name": "Not Authenticated",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/auth/user",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "user"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"authenticated\": false\n}"
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Logout successful\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('message');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Logs out the current user and destroys the session.\n\nRequires: Valid session cookie\nResponse: Success message"
+          },
+          "response": [
+            {
+              "name": "Successful Logout",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/auth/logout",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "logout"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Logged out successfully\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "API Endpoints",
+      "description": "Protected application endpoints (require authentication)",
+      "item": [
+        {
+          "name": "Get Top Searches",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is an array\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test(\"Array has max 5 items\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.length).to.be.at.most(5);",
+                  "});",
+                  "",
+                  "if (pm.response.json().length > 0) {",
+                  "    pm.test(\"Items have term and count\", function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData[0]).to.have.property('term');",
+                  "        pm.expect(jsonData[0]).to.have.property('count');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/top-searches",
+              "host": ["{{base_url}}"],
+              "path": ["api", "top-searches"]
+            },
+            "description": "Returns the top 5 most frequently searched terms across all users.\n\nRequires: Authentication\nResponse: Array of {term, count} objects, max 5 items"
+          },
+          "response": [
+            {
+              "name": "Top 5 Searches",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/top-searches",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "top-searches"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"term\": \"nature\",\n    \"count\": 45\n  },\n  {\n    \"term\": \"technology\",\n    \"count\": 32\n  },\n  {\n    \"term\": \"architecture\",\n    \"count\": 28\n  },\n  {\n    \"term\": \"people\",\n    \"count\": 21\n  },\n  {\n    \"term\": \"food\",\n    \"count\": 18\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Search Images",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has required fields\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('term');",
+                  "    pm.expect(jsonData).to.have.property('count');",
+                  "    pm.expect(jsonData).to.have.property('images');",
+                  "});",
+                  "",
+                  "pm.test(\"Images is an array\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.images).to.be.an('array');",
+                  "});",
+                  "",
+                  "if (pm.response.json().images.length > 0) {",
+                  "    pm.test(\"Image has required fields\", function () {",
+                  "        var image = pm.response.json().images[0];",
+                  "        pm.expect(image).to.have.property('id');",
+                  "        pm.expect(image).to.have.property('url');",
+                  "        pm.expect(image).to.have.property('thumbnail');",
+                  "        pm.expect(image).to.have.property('description');",
+                  "        pm.expect(image).to.have.property('photographer');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"term\": \"nature\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/search",
+              "host": ["{{base_url}}"],
+              "path": ["api", "search"]
+            },
+            "description": "Searches for images using Unsplash API and stores the search in user's history.\n\nRequires: Authentication\nBody: {term: string}\nResponse: {term, count, images[]}"
+          },
+          "response": [
+            {
+              "name": "Successful Search",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"term\": \"nature\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/search",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "search"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"term\": \"nature\",\n  \"count\": 30,\n  \"images\": [\n    {\n      \"id\": \"abc123xyz\",\n      \"url\": \"https://images.unsplash.com/photo-123?ixlib=rb-4.0.3\",\n      \"thumbnail\": \"https://images.unsplash.com/photo-123?w=400\",\n      \"description\": \"Beautiful mountain landscape at sunset\",\n      \"photographer\": \"John Smith\",\n      \"photographerUrl\": \"https://unsplash.com/@johnsmith\"\n    }\n  ]\n}"
+            },
+            {
+              "name": "Bad Request - Empty Term",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"term\": \"\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/search",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "search"]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": \"Search term is required\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Search History",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is an array\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test(\"Array has max 20 items\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.length).to.be.at.most(20);",
+                  "});",
+                  "",
+                  "if (pm.response.json().length > 0) {",
+                  "    pm.test(\"Items have term and timestamp\", function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData[0]).to.have.property('term');",
+                  "        pm.expect(jsonData[0]).to.have.property('timestamp');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/history",
+              "host": ["{{base_url}}"],
+              "path": ["api", "history"]
+            },
+            "description": "Returns the authenticated user's personal search history.\n\nRequires: Authentication\nResponse: Array of {term, timestamp} objects, max 20 items (newest first)"
+          },
+          "response": [
+            {
+              "name": "User Search History",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/history",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "history"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"term\": \"mountains\",\n    \"timestamp\": \"2025-11-05T14:30:00.000Z\"\n  },\n  {\n    \"term\": \"ocean\",\n    \"timestamp\": \"2025-11-05T13:15:00.000Z\"\n  },\n  {\n    \"term\": \"city\",\n    \"timestamp\": \"2025-11-04T18:45:00.000Z\"\n  }\n]"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// This script runs before every request",
+          "// Cookies are automatically handled by Postman after OAuth login"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test script",
+          "// Check for unauthorized responses",
+          "if (pm.response.code === 401) {",
+          "    console.log('Unauthorized - Please login via browser first');",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000",
+      "type": "string"
+    }
+  ]
+}
