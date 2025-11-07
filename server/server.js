@@ -48,6 +48,8 @@ mongoose.connect(process.env.MONGO_URI, {
 .catch(err => console.error('❌ MongoDB connection error:', err));
 
 // Session configuration
+const isProduction = process.env.NODE_ENV === 'production';
+
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
@@ -59,11 +61,12 @@ app.use(session({
   cookie: {
     maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     httpOnly: true,
-    secure: false, // Set to false for local development
-    sameSite: 'lax', // Use 'lax' for local development
+    secure: isProduction, // true in production (HTTPS), false in development
+    sameSite: isProduction ? 'none' : 'lax', // 'none' for cross-domain in production
     path: '/'
   },
-  name: 'connect.sid' // Explicitly set the session cookie name
+  name: 'connect.sid',
+  proxy: isProduction // Trust proxy in production (Render uses proxy)
 }));
 
 // Passport middleware
