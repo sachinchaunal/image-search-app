@@ -1,8 +1,12 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' 
-  ? 'https://image-search-multi-select-backend.onrender.com' 
-  : 'http://localhost:5000');
+// Get API URL from environment variable
+// Default to localhost:5000 for development if not set
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
+if (!process.env.REACT_APP_API_URL) {
+  console.warn('⚠️ REACT_APP_API_URL not set in .env file. Using default:', API_BASE_URL);
+}
 
 // Configure axios defaults
 axios.defaults.withCredentials = true;

@@ -12,6 +12,7 @@ router.get('/google',
 router.get('/google/callback',
   passport.authenticate('google', { failureRedirect: `${CLIENT_URL}/login` }),
   (req, res) => {
+    console.log('✅ Google OAuth successful! User:', req.user.displayName);
     res.redirect(CLIENT_URL);
   }
 );

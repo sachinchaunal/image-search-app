@@ -169,6 +169,33 @@ cd ../client
 npm install
 ```
 
+#### Configure Environment Variables
+
+Create a `.env` file in the `client` directory:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and configure the backend API URL:
+
+```env
+# Backend API URL
+# Development: http://localhost:5000
+# Production: Your production backend URL
+REACT_APP_API_URL=http://localhost:5000
+```
+
+**Important:** 
+- ⚠️ The `proxy` field in `package.json` is NOT used (removed to prevent CORS issues)
+- ✅ All API calls use the full URL from `REACT_APP_API_URL`
+- ✅ This ensures proper CORS handling in both development and production
+
+#### Environment Files:
+- `.env` - Your local development configuration (not committed to Git)
+- `.env.example` - Template for environment variables (committed to Git)
+- `.env.production` - Production configuration template
+
 ### 4. OAuth Provider Setup
 
 #### Google OAuth
@@ -1112,6 +1139,146 @@ npx kill-port 3000
 - Responsive design with mobile-first approach
 
 ## 🚀 Deployment
+
+### Important: No Hardcoded URLs! 
+
+This project is configured to use environment variables for ALL URLs, ensuring smooth deployment without CORS issues.
+
+#### ✅ What's Configured:
+- **Client:** Uses `REACT_APP_API_URL` from `.env` (no hardcoded backend URLs)
+- **Server:** Uses `CLIENT_URL` from `.env` (no hardcoded frontend URLs)
+- **No proxy in package.json** - Full URL control via environment variables
+
+### Backend Deployment (Heroku/Render/Railway)
+
+#### 1. Set Environment Variables
+Configure these in your hosting platform's dashboard:
+
+```env
+# Database
+MONGO_URI=your-mongodb-atlas-connection-string
+
+# Server
+PORT=5000  # or use platform default
+NODE_ENV=production
+
+# Security
+SESSION_SECRET=your-secure-random-string
+
+# OAuth (Update callback URLs to production domain)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GOOGLE_CALLBACK_URL=https://your-backend.com/auth/google/callback
+
+# API Keys
+UNSPLASH_ACCESS_KEY=your-unsplash-key
+
+# IMPORTANT: Your frontend URL
+CLIENT_URL=https://your-frontend.com
+```
+
+#### 2. Update OAuth Callback URLs
+Update your OAuth provider settings:
+- **Google Console:** `https://your-backend.com/auth/google/callback`
+- **Facebook App:** `https://your-backend.com/auth/facebook/callback`
+- **GitHub App:** `https://your-backend.com/auth/github/callback`
+
+#### 3. Deploy
+```bash
+git push heroku main
+# or follow your hosting platform's deployment steps
+```
+
+---
+
+### Frontend Deployment (Vercel/Netlify)
+
+#### 1. Set Environment Variable
+In your hosting platform's dashboard, set:
+
+```env
+REACT_APP_API_URL=https://your-backend.com
+```
+
+**Important:** No trailing slash!
+
+#### 2. Build and Deploy
+```bash
+npm run build
+# or automatic deployment via Git integration
+```
+
+---
+
+### Production Checklist
+
+Before deploying, verify:
+
+✅ **Backend `.env`:**
+- [ ] `MONGO_URI` points to production database
+- [ ] `CLIENT_URL` is your production frontend URL
+- [ ] `NODE_ENV=production`
+- [ ] All OAuth callback URLs updated to production URLs
+- [ ] `SESSION_SECRET` is a strong random string
+
+✅ **Frontend `.env` or hosting environment:**
+- [ ] `REACT_APP_API_URL` points to production backend URL
+- [ ] No hardcoded URLs in code
+
+✅ **OAuth Providers:**
+- [ ] Callback URLs updated in Google Console
+- [ ] Callback URLs updated in Facebook App
+- [ ] Callback URLs updated in GitHub Settings
+
+✅ **CORS Configuration:**
+- [ ] Server's `CLIENT_URL` matches frontend domain exactly
+- [ ] Test authentication flow after deployment
+
+---
+
+### Testing Production Build Locally
+
+#### Test Frontend Build:
+```bash
+cd client
+npm run build
+npx serve -s build -l 3000
+```
+
+#### Test with Production-like Environment:
+```bash
+# Backend
+cd server
+NODE_ENV=production npm start
+
+# Frontend - update .env first
+cd client
+REACT_APP_API_URL=http://localhost:5000 npm start
+```
+
+---
+
+### Common Deployment Issues
+
+#### ❌ CORS Errors in Production
+**Cause:** `CLIENT_URL` doesn't match frontend domain  
+**Fix:** Verify `CLIENT_URL` in backend `.env` exactly matches your frontend URL (no trailing slash)
+
+#### ❌ OAuth Callback Fails
+**Cause:** Callback URLs not updated in OAuth provider settings  
+**Fix:** Update callback URLs in Google/Facebook/GitHub to production URLs
+
+#### ❌ Session Not Persisting
+**Cause:** Cookie settings need adjustment for production  
+**Fix:** Server is configured to handle this automatically based on `NODE_ENV`
+
+#### ❌ API Calls to Wrong URL
+**Cause:** `REACT_APP_API_URL` not set or incorrect  
+**Fix:** Verify environment variable in hosting platform dashboard
+
+---
+
+---
 
 ### Backend Deployment (Heroku Example)
 1. Set all environment variables in Heroku Config Vars
